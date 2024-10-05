@@ -81,14 +81,29 @@ def plot_sistema(planetas_cartesianas, orbitales):
                                      name=f'Órbita de {nombre}',
                                      line=dict(width=2)))
 
+    # Configurar el layout para tener fondo negro y líneas blancas
     fig.update_layout(scene=dict(
-                        xaxis_title='X (AU)',
-                        yaxis_title='Y (AU)',
-                        zaxis_title='Z (AU)'),
-                      margin=dict(l=0, r=0, b=0, t=0))
+                        xaxis=dict(title='X (AU)',
+                                   backgroundcolor='black',
+                                   gridcolor='white',
+                                   showbackground=True),
+                        yaxis=dict(title='Y (AU)',
+                                   backgroundcolor='black',
+                                   gridcolor='white',
+                                   showbackground=True),
+                        zaxis=dict(title='Z (AU)',
+                                   backgroundcolor='black',
+                                   gridcolor='white',
+                                   showbackground=True)
+                      ),
+                      margin=dict(l=0, r=0, b=0, t=0),
+                      paper_bgcolor='black',  # Fondo general de la gráfica
+                      font_color='white')  # Color del texto
+
 
     # Retornar la figura en formato HTML
     return fig.to_html(full_html=False)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
