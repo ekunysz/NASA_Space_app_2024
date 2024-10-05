@@ -35,7 +35,7 @@ def calcular_elementos(planeta, fecha):
 
     return a, e, I, L, long_peri, long_node
 
-def kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu=0):
+def kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu):
     I = np.radians(I)
     long_peri = np.radians(long_peri)
     long_node = np.radians(long_node)
@@ -46,9 +46,16 @@ def kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu=0):
               np.sin(long_node) * np.sin(long_peri + nu) * np.cos(I))
     y = r * (np.sin(long_node) * np.cos(long_peri + nu) + 
               np.cos(long_node) * np.sin(long_peri + nu) * np.cos(I))
-    z = r * (np.sin(I) * np.sin(long_peri + nu))
+    z = r * (np.cos(long_node) * np.cos(long_peri + nu) + 
+              np.sin(long_node) * np.sin(long_peri + nu)* np.cos(I))
 
     return x, y, z
+
+def generar_orbita_completa(a, e, I, long_peri, long_node):
+    nu_values = np.linspace(0, 360, 360)  # 360 puntos para una órbita completa
+    coords_orbita = [kepler_to_cartesian(a, e, I, L=0, long_peri=long_peri, long_node=long_node, nu=nu) for nu in nu_values]
+    coords_orbita = np.array(coords_orbita)
+    return coords_orbita[:, 0], coords_orbita[:, 1], coords_orbita[:, 2]
 
 def plot_sistema(planetas_cartesianas, orbitales):
     fig = go.Figure()
@@ -126,13 +133,12 @@ def index():
     orbitales = {}
     for nombre, planeta in planetas.items():
         a, e, I, L, long_peri, long_node = calcular_elementos(planeta, fecha)
-        coords = kepler_to_cartesian(a, e, I, L, long_peri, long_node)
+        coords = kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu=0)  # Usa nu=0 como posición inicial
         planetas_cartesianas[nombre] = coords
 
-        # Calcular la órbita para toda la trayectoria
-        nu_values = np.linspace(0, 2 * np.pi, 1000)  # Aumentar el número de puntos para una órbita más suave
-        orbit_coords = np.array([kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu) for nu in nu_values])
-        orbitales[nombre] = orbit_coords.T  # Transponer para obtener x, y, z
+        # Calcular la órbita completa para el planeta
+        orbit_x, orbit_y, orbit_z = generar_orbita_completa(a, e, I, long_peri, long_node)
+        orbitales[nombre] = (orbit_x, orbit_y, orbit_z)
 
     figura_html = plot_sistema(planetas_cartesianas, orbitales)
     return render_template('index.html', figura=figura_html)

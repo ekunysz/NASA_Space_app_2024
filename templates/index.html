@@ -3,40 +3,66 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simulación del Sistema Solar</title>
+    <title>Simulación Planetaria</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   </head>
   <body>
     <h1>Simulación del Sistema Solar</h1>
-    <div>{{ figura|safe }}</div>
-    <h2>Agregar un nuevo cuerpo celeste</h2>
     <form method="POST">
+      <label for="fecha">Fecha:</label>
+      <input type="date" id="fecha" name="fecha" value="{{ fecha }}" />
+
+      <h3>Añadir un cuerpo celeste:</h3>
       <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" name="nombre" required />
-      <label for="a">Semieje mayor (AU):</label>
-      <input type="number" id="a" name="a" step="any" required />
-      <label for="e">Excentricidad:</label>
-      <input type="number" id="e" name="e" step="any" required />
-      <label for="I">Inclinación (grados):</label>
-      <input type="number" id="I" name="I" step="any" required />
-      <label for="L">Longitud verdadera (grados):</label>
-      <input type="number" id="L" name="L" step="any" required />
-      <label for="long_peri">Longitud del periastro (grados):</label>
-      <input
-        type="number"
-        id="long_peri"
-        name="long_peri"
-        step="any"
-        required
-      />
-      <label for="long_node">Longitud del nodo ascendente (grados):</label>
-      <input
-        type="number"
-        id="long_node"
-        name="long_node"
-        step="any"
-        required
-      />
-      <button type="submit">Agregar Cuerpo Celeste</button>
+      <input type="text" id="nombre" name="nombre" />
+
+      <label for="a">Semi-eje mayor (a):</label>
+      <input type="number" step="0.01" id="a" name="a" />
+
+      <label for="e">Excentricidad (e):</label>
+      <input type="number" step="0.01" id="e" name="e" />
+
+      <label for="I">Inclinación (I):</label>
+      <input type="number" step="0.01" id="I" name="I" />
+
+      <label for="L">Longitud media (L):</label>
+      <input type="number" step="0.01" id="L" name="L" />
+
+      <label for="long_peri">Longitud del perihelio (long_peri):</label>
+      <input type="number" step="0.01" id="long_peri" name="long_peri" />
+
+      <label for="long_node">Longitud del nodo ascendente (long_node):</label>
+      <input type="number" step="0.01" id="long_node" name="long_node" />
+
+      <input type="submit" value="Añadir cuerpo" />
     </form>
+
+    <!-- Slider para avanzar el tiempo -->
+    <h3>Simulación de tiempo</h3>
+    <input
+      type="range"
+      id="time_slider"
+      min="0"
+      max="365"
+      step="1"
+      value="0"
+      oninput="actualizarTiempo()"
+    />
+    <p>
+      Días transcurridos desde la fecha seleccionada: <span id="dias"></span>
+    </p>
+
+    <div id="grafico">{{ figura|safe }}</div>
+
+    <script>
+      // Función para actualizar el tiempo
+      function actualizarTiempo() {
+        var slider = document.getElementById("time_slider");
+        var dias = document.getElementById("dias");
+        dias.innerHTML = slider.value;
+
+        // Aquí puedes realizar una llamada a tu backend o actualizar el gráfico con la nueva fecha
+      }
+    </script>
   </body>
 </html>
