@@ -1,16 +1,202 @@
 body {
+  background-color: #1c1c1c;
+  color: #e0e0e0;
   font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
   text-align: center;
-  background-color: #000;
-  color: #fff;
+  font-size: 2.5em;
+  color: #f0f0f0;
 }
 
-.solar-system-container {
-  margin-top: 50px;
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
 }
 
-#solarSystem {
-  width: 100%;
-  height: 600px;
+label {
+  font-size: 1.2em;
+}
+
+input,
+button {
+  padding: 10px;
+  font-size: 1em;
+  border: none;
+  border-radius: 5px;
+  background-color: #333;
+  color: #e0e0e0;
+}
+
+input:focus,
+button:focus {
+  outline: 2px solid #00bfff;
+}
+
+button {
+  background-color: #00bfff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0099cc;
+}
+
+#fecha {
+  padding: 10px;
+  border-radius: 5px;
+}
+
+#simulacion-tiempo {
+  margin: 20px 0;
+  font-size: 1.2em;
+  color: #e0e0e0;
+}
+
+canvas {
+  border: 1px solid #444;
+  margin: 0 auto;
+  display: block;
+}
+
+#dias-transcurridos {
+  font-size: 1.2em;
+  margin: 10px 0;
+}
+
+/* Para la leyenda de colores */
+.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   margin-top: 20px;
 }
+
+.legend div {
+  margin: 10px;
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+}
+
+.legend div::before {
+  content: "";
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  margin-right: 10px;
+  border-radius: 50%;
+}
+
+/* Estilos para cada cuerpo celeste en la leyenda */
+.legend .Sol::before {
+  background-color: yellow;
+}
+
+.legend .Mercurio::before {
+  background-color: grey;
+}
+
+.legend .Venus::before {
+  background-color: orange;
+}
+
+.legend .Tierra::before {
+  background-color: blue;
+}
+
+/* Contenedor del formulario en dos columnas */
+/* Contenedor del formulario en dos columnas */
+.grid-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+  gap: 20px; /* Espacio entre las columnas */
+  max-width: 800px; /* Limitar el ancho total del formulario */
+  margin: 0 auto; /* Centrar el formulario horizontalmente */
+}
+
+/* Estilo para los inputs y labels */
+.grid-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #ffffff; /* Color blanco para resaltar sobre el fondo oscuro */
+}
+
+.grid-form input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  background-color: #333333; /* Fondo oscuro para los inputs */
+  border: 1px solid #555555; /* Bordes suaves */
+  color: #ffffff; /* Texto blanco en los inputs */
+}
+
+#formulario {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9); /* Fondo oscuro */
+  z-index: 1000;
+  overflow-y: auto;
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.5s ease, opacity 0.5s ease, visibility 0.5s ease;
+  padding: 20px;
+}
+
+#formulario.show {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.form-button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin-top: 20px;
+  grid-column: span 2; /* Para que el botón ocupe ambas columnas */
+}
+
+.form-button:hover {
+  background-color: #0056b3;
+}
+
+.close-button {
+  background-color: #dc3545;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  float: right;
+}
+
+.close-button:hover {
+  background-color: #c82333;
+}
+
+/* Ajustes generales para mejorar la estética */
+body {
+  background-color: #121212; /* Fondo oscuro para toda la página */
+  color: #ffffff; /* Texto blanco */
+}
+
+h1 {
+  color: #ffffff; /* Título en blanco */
+  text-align: center;
+  margin-bottom: 20px;
+}
+/* Añadir más estilos para otros planetas aquí */

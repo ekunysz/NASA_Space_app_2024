@@ -51,4 +51,20 @@ document
         animate();
       })
       .catch((error) => console.error("Error:", error));
+
+    document.querySelector("form").addEventListener("submit", function (event) {
+      const submitButton = document.querySelector("button");
+      submitButton.textContent = "Procesando...";
+      submitButton.style.backgroundColor = "#006699";
+    });
+
+    function toggleForm() {
+      var formulario = document.getElementById("formulario");
+      formulario.classList.add("show");
+    }
+
+    function closeForm() {
+      var formulario = document.getElementById("formulario");
+      formulario.classList.remove("show");
+    }
   });
