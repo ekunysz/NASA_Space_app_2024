@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulación del Sistema Solar</title>
+  </head>
+  <body>
+    <h1>Simulación del Sistema Solar</h1>
+    <div>{{ figura|safe }}</div>
+    <h2>Agregar un nuevo cuerpo celeste</h2>
+    <form method="POST">
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" name="nombre" required />
+      <label for="a">Semieje mayor (AU):</label>
+      <input type="number" id="a" name="a" step="any" required />
+      <label for="e">Excentricidad:</label>
+      <input type="number" id="e" name="e" step="any" required />
+      <label for="I">Inclinación (grados):</label>
+      <input type="number" id="I" name="I" step="any" required />
+      <label for="L">Longitud verdadera (grados):</label>
+      <input type="number" id="L" name="L" step="any" required />
+      <label for="long_peri">Longitud del periastro (grados):</label>
+      <input
+        type="number"
+        id="long_peri"
+        name="long_peri"
+        step="any"
+        required
+      />
+      <label for="long_node">Longitud del nodo ascendente (grados):</label>
+      <input
+        type="number"
+        id="long_node"
+        name="long_node"
+        step="any"
+        required
+      />
+      <button type="submit">Agregar Cuerpo Celeste</button>
+    </form>
+  </body>
+</html>
