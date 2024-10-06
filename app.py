@@ -135,7 +135,8 @@ def plot_sistema(planetas_cartesianas, orbitales):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    fecha = datetime(2024, 10, 5)  # Fecha actual
+
+    fecha = datetime.now()  #Fecha actual
 
     # Cargar los parámetros orbitales desde el archivo JSON
     parametros_orbitales = cargar_parametros_desde_json('parametros_orbitales.json')
@@ -143,6 +144,24 @@ def index():
 
     # Obtener cuerpos adicionales del formulario
     if request.method == 'POST':
+        # Obtener la fecha y hora del formulario
+        fecha_hora_str = request.form.get('fecha_hora')
+        
+        # Si no se proporciona la fecha, usar la actual
+        if fecha_hora_str:
+            try:
+                # Intentar convertir el string en un objeto datetime
+                fecha = datetime.strptime(fecha_hora_str, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                # Si el formato no es correcto, usar la fecha actual
+                fecha = datetime.now()
+        else:
+            # Usar la fecha y hora actual por defecto
+            fecha = datetime.now()
+
+        # Imprimir la fecha y hora procesada
+        print(f"Fecha y hora: {fecha}")
+
         # Asegúrate de que el formulario envíe todos los campos necesarios
         nombre = request.form.get('nombre')
         a = float(request.form.get('a'))
