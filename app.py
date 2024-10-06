@@ -1,4 +1,5 @@
 import numpy as np
+import json
 import plotly.graph_objects as go
 from datetime import datetime
 from flask import Flask, render_template, request
@@ -21,6 +22,33 @@ class Planeta:
         self.L_rate = L_rate
         self.long_peri_rate = long_peri_rate
         self.long_node_rate = long_node_rate
+
+# Función para cargar parámetros desde el archivo JSON
+def cargar_parametros_desde_json(archivo):
+    with open(archivo, 'r') as file:
+        return json.load(file)
+
+# Función para crear instancias de Planeta a partir de los parámetros cargados
+def crear_planetas_desde_json(parametros):
+    planetas = {}
+    for nombre, datos in parametros.items():
+        planetas[nombre] = Planeta(
+            nombre=nombre,
+            a=datos['a'],
+            a_rate=datos['a_rate'],
+            e=datos['e'],
+            e_rate=datos['e_rate'],
+            I=datos['I'],
+            I_rate=datos['I_rate'],
+            L=datos['L'],
+            L_rate=datos['L_rate'],
+            long_peri=datos['long_peri'],
+            long_peri_rate=datos['long_peri_rate'],
+            long_node=datos['long_node'],
+            long_node_rate=datos['long_node_rate']
+        )
+    return planetas
+
 
 def calcular_elementos(planeta, fecha):
     j2000 = datetime(2000, 1, 1)
@@ -109,41 +137,44 @@ def plot_sistema(planetas_cartesianas, orbitales):
 def index():
     fecha = datetime(2024, 10, 5)  # Fecha actual
 
-    # Definir planetas (incluyendo el Sol)
-    planetas = {
-        'Sol': Planeta('Sol', 0, 0, 0, 0, 0, 0, 
-                       0, 0, 0, 0, 0, 0),
-        'Mercurio': Planeta('Mercurio', 0.387, 0.2056, 7.005, 252.250, 77.457, 48.331, 
-                            0, 0, 0, 0, 0, 0),
-        'Venus': Planeta('Venus', 0.723, 0.0068, 3.394, 181.979, 131.532, 76.680, 
-                         0, 0, 0, 0, 0, 0),
-        'Tierra': Planeta('Tierra', 1.000, 0.0167, 0.000, 100.464, 102.947, 174.791, 
-                          0, 0, 0, 0, 0, 0),
-        'Marte': Planeta('Marte', 1.524, 0.0934, 1.850, 335.40, 336.23, 49.56, 
-                         0, 0, 0, 0, 0, 0),
-        'Júpiter': Planeta('Júpiter', 5.203, 0.0484, 1.304, 34.404, 14.331, 100.464, 
-                           0, 0, 0, 0, 0, 0),
-        'Saturno': Planeta('Saturno', 9.537, 0.0542, 2.485, 50.077, 92.431, 113.665, 
-                           0, 0, 0, 0, 0, 0),
-        'Urano': Planeta('Urano', 19.191, 0.0472, 0.773, 314.202, 170.954, 74.015, 
-                         0, 0, 0, 0, 0, 0),
-        'Neptuno': Planeta('Neptuno', 30.069, 0.0086, 1.769, 304.880, 44.964, 131.784, 
-                           0, 0, 0, 0, 0, 0)
-    }
+    # Cargar los parámetros orbitales desde el archivo JSON
+    parametros_orbitales = cargar_parametros_desde_json('parametros_orbitales.json')
+    planetas = crear_planetas_desde_json(parametros_orbitales)
 
     # Obtener cuerpos adicionales del formulario
     if request.method == 'POST':
+        # Asegúrate de que el formulario envíe todos los campos necesarios
         nombre = request.form.get('nombre')
         a = float(request.form.get('a'))
+        a_rate = float(request.form.get('a_rate', 0.0))
         e = float(request.form.get('e'))
+        e_rate = float(request.form.get('e_rate', 0.0))
         I = float(request.form.get('I'))
+        I_rate = float(request.form.get('I_rate', 0.0))
         L = float(request.form.get('L'))
+        L_rate = float(request.form.get('L_rate', 0.0))
         long_peri = float(request.form.get('long_peri'))
+        long_peri_rate = float(request.form.get('long_peri_rate', 0.0))
         long_node = float(request.form.get('long_node'))
+        long_node_rate = float(request.form.get('long_node_rate', 0.0))
         
-        planetas[nombre] = Planeta(nombre, a, e, I, L, long_peri, long_node, 
-                                    0, 0, 0, 0, 0, 0)
-
+        # Añadir el nuevo planeta al diccionario
+        planetas[nombre] = Planeta(
+            nombre=nombre,
+            a=a,
+            a_rate=a_rate,
+            e=e,
+            e_rate=e_rate,
+            I=I,
+            I_rate=I_rate,
+            L=L,
+            L_rate=L_rate,
+            long_peri=long_peri,
+            long_peri_rate=long_peri_rate,
+            long_node=long_node,
+            long_node_rate=long_node_rate
+        )
+        
     planetas_cartesianas = {}
     orbitales = {}
     for nombre, planeta in planetas.items():
