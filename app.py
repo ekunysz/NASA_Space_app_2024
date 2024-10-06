@@ -98,11 +98,14 @@ def calcular_elementos(cuerpo, fecha):
     long_peri = cuerpo.long_peri + cuerpo.long_peri_rate * delta_t
     long_node = cuerpo.long_node + cuerpo.long_node_rate * delta_t
 
-    return a, e, I, L, long_peri, long_node
+    # Calcular el argumento del periastro (ω)
+    omega = long_peri - long_node
 
-def kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu):
+    return a, e, I, L, omega, long_node
+
+def kepler_to_cartesian(a, e, I, L, omega, long_node, nu):
     I = np.radians(I)
-    long_peri = np.radians(long_peri)
+    omega = np.radians(omega)
     long_node = np.radians(long_node)
     nu = np.radians(nu)
 
@@ -115,8 +118,8 @@ def kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu):
     z_orb = 0
 
     # Rotación por el argumento del periapsis (ω)
-    x1 = x_orb * np.cos(long_peri) - y_orb * np.sin(long_peri)
-    y1 = x_orb * np.sin(long_peri) + y_orb * np.cos(long_peri)
+    x1 = x_orb * np.cos(omega) - y_orb * np.sin(omega)
+    y1 = x_orb * np.sin(omega) + y_orb * np.cos(omega)
     z1 = z_orb
 
     # Rotación por la inclinación (i)
@@ -131,14 +134,17 @@ def kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu):
 
     return x, y, z
 
-def generar_orbita_completa(a, e, I, long_peri, long_node):
+def generar_orbita_completa(a, e, I, omega, long_node):
     nu_values = np.linspace(0, 360, 720)  # 360 puntos para una órbita completa
-    coords_orbita = [kepler_to_cartesian(a, e, I, L=0, long_peri=long_peri, long_node=long_node, nu=nu) for nu in nu_values]
+    coords_orbita = [kepler_to_cartesian(a, e, I, L=0, omega=omega, long_node=long_node, nu=nu) for nu in nu_values]
     coords_orbita = np.array(coords_orbita)
     return coords_orbita[:, 0], coords_orbita[:, 1], coords_orbita[:, 2]
 
 def plot_sistema(cuerpos_cartesianos, orbitales, nombres_cometas):
     fig = go.Figure()
+
+    # Definir el rango para los ejes (ajustar estos valores según tus datos)
+    axis_range = [-100, 100]  # Por ejemplo, -30 a 30 AU. Ajusta según tus planetas
 
     # Añadir el Sol
     fig.add_trace(go.Scatter3d(x=[0], y=[0], z=[0],
@@ -178,15 +184,18 @@ def plot_sistema(cuerpos_cartesianos, orbitales, nombres_cometas):
                         xaxis=dict(title='X (AU)',
                                    backgroundcolor='black',
                                    gridcolor='white',
-                                   showbackground=True),
+                                   showbackground=True,
+                                   range=axis_range),
                         yaxis=dict(title='Y (AU)',
                                    backgroundcolor='black',
                                    gridcolor='white',
-                                   showbackground=True),
+                                   showbackground=True,
+                                   range=axis_range),
                         zaxis=dict(title='Z (AU)',
                                    backgroundcolor='black',
                                    gridcolor='white',
-                                   showbackground=True)
+                                   showbackground=True,
+                                   range=axis_range)
                       ),
                       margin=dict(l=0, r=0, b=0, t=0),
                       paper_bgcolor='black',  # Fondo general de la gráfica
