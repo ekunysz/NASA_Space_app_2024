@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import csv
 import json
 import plotly.graph_objects as go
 from datetime import datetime
@@ -6,9 +8,9 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
-class Planeta:
+class CuerpoCeleste:
     def __init__(self, nombre, a, e, I, L, long_peri, long_node, 
-                 a_rate, e_rate, I_rate, L_rate, long_peri_rate, long_node_rate):
+                 a_rate=0, e_rate=0, I_rate=0, L_rate=0, long_peri_rate=0, long_node_rate=0):
         self.nombre = nombre
         self.a = a
         self.e = e
@@ -32,7 +34,7 @@ def cargar_parametros_desde_json(archivo):
 def crear_planetas_desde_json(parametros):
     planetas = {}
     for nombre, datos in parametros.items():
-        planetas[nombre] = Planeta(
+        planetas[nombre] = CuerpoCeleste(
             nombre=nombre,
             a=datos['a'],
             a_rate=datos['a_rate'],
@@ -49,17 +51,52 @@ def crear_planetas_desde_json(parametros):
         )
     return planetas
 
+def cargar_cometas_desde_csv(ruta_csv):
+    cometas = {}
+    nombres_cometas = []  # Lista para almacenar nombres de cometas
+    with open(ruta_csv, mode='r') as archivo_csv:
+        lector = csv.DictReader(archivo_csv)
+        for fila in lector:
+            nombre = fila['full_name']
+            e = float(fila['e'])  # Excentricidad
+            q = float(fila['q'])  # Perihelio
 
-def calcular_elementos(planeta, fecha):
+            # Calcular el semieje mayor a partir de q
+            a = q / (1 - e)
+
+            I = float(fila['i'])  # Inclinación
+            long_peri = float(fila['w'])  # Longitud del periapsis
+            long_node = float(fila['om'])  # Longitud del nodo ascendente
+
+            # Calcular el período orbital P (en años) usando la tercera ley de Kepler
+            P = np.sqrt(a ** 3)  # P en años, donde a está en unidades AU
+
+            # Para simplificar, asumiremos que el tiempo desde el perihelio es 0
+            t = 0  # Tiempo en días desde el perihelio
+            T = 0  # Tiempo del perihelio (0 para simplificación)
+            M = (2 * np.pi / P) * (t - T)  # Anomalía media
+
+            # Calcular L (longitud media)
+            L = M + long_peri + long_node  # Asegúrate de que las unidades sean consistentes
+
+            # Ajustar L para que esté en el rango [0, 360]
+            L = L % 360
+
+            # Crear el objeto CuerpoCeleste
+            cometas[nombre] = CuerpoCeleste(nombre, a, e, I, L, long_peri, long_node)
+            nombres_cometas.append(nombre)  # Agregar nombre de cometa a la lista
+    return cometas, nombres_cometas  # Devolver también la lista de nombres de cometas
+
+def calcular_elementos(cuerpo, fecha):
     j2000 = datetime(2000, 1, 1)
     delta_t = (fecha - j2000).days / 365.25  # Años desde J2000
 
-    a = planeta.a + planeta.a_rate * delta_t
-    e = planeta.e + planeta.e_rate * delta_t
-    I = planeta.I + planeta.I_rate * delta_t
-    L = planeta.L + planeta.L_rate * delta_t
-    long_peri = planeta.long_peri + planeta.long_peri_rate * delta_t
-    long_node = planeta.long_node + planeta.long_node_rate * delta_t
+    a = cuerpo.a + cuerpo.a_rate * delta_t
+    e = cuerpo.e + cuerpo.e_rate * delta_t
+    I = cuerpo.I + cuerpo.I_rate * delta_t
+    L = cuerpo.L + cuerpo.L_rate * delta_t
+    long_peri = cuerpo.long_peri + cuerpo.long_peri_rate * delta_t
+    long_node = cuerpo.long_node + cuerpo.long_node_rate * delta_t
 
     return a, e, I, L, long_peri, long_node
 
@@ -69,23 +106,38 @@ def kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu):
     long_node = np.radians(long_node)
     nu = np.radians(nu)
 
+    # Calculo de la distancia (vector r)
     r = a * (1 - e**2) / (1 + e * np.cos(nu))
-    x = r * (np.cos(long_node) * np.cos(long_peri + nu) - 
-              np.sin(long_node) * np.sin(long_peri + nu) * np.cos(I))
-    y = r * (np.sin(long_node) * np.cos(long_peri + nu) + 
-              np.cos(long_node) * np.sin(long_peri + nu) * np.cos(I))
-    z = r * (np.cos(long_node) * np.cos(long_peri + nu) + 
-              np.sin(long_node) * np.sin(long_peri + nu)* np.cos(I))
+
+    # Posición en el plano orbital
+    x_orb = r * np.cos(nu)
+    y_orb = r * np.sin(nu)
+    z_orb = 0
+
+    # Rotación por el argumento del periapsis (ω)
+    x1 = x_orb * np.cos(long_peri) - y_orb * np.sin(long_peri)
+    y1 = x_orb * np.sin(long_peri) + y_orb * np.cos(long_peri)
+    z1 = z_orb
+
+    # Rotación por la inclinación (i)
+    x2 = x1
+    y2 = y1 * np.cos(I)
+    z2 = y1 * np.sin(I)
+
+    # Rotación por la longitud del nodo ascendente (Ω)
+    x = x2 * np.cos(long_node) - y2 * np.sin(long_node)
+    y = x2 * np.sin(long_node) + y2 * np.cos(long_node)
+    z = z2
 
     return x, y, z
 
 def generar_orbita_completa(a, e, I, long_peri, long_node):
-    nu_values = np.linspace(0, 360, 360)  # 360 puntos para una órbita completa
+    nu_values = np.linspace(0, 360, 720)  # 360 puntos para una órbita completa
     coords_orbita = [kepler_to_cartesian(a, e, I, L=0, long_peri=long_peri, long_node=long_node, nu=nu) for nu in nu_values]
     coords_orbita = np.array(coords_orbita)
     return coords_orbita[:, 0], coords_orbita[:, 1], coords_orbita[:, 2]
 
-def plot_sistema(planetas_cartesianas, orbitales):
+def plot_sistema(cuerpos_cartesianos, orbitales, nombres_cometas):
     fig = go.Figure()
 
     # Añadir el Sol
@@ -94,10 +146,22 @@ def plot_sistema(planetas_cartesianas, orbitales):
                                  marker=dict(size=10, color='yellow'),
                                  name='Sol'))
 
+    # Definir los colores
+    color_planeta = 'green'  # Color para los planetas
+    color_cometa = 'rgba(255, 0, 0, 0.5)'  # Color rojo con opacidad
+
     # Añadir planetas y sus órbitas
-    for nombre, coords in planetas_cartesianas.items():
+    for nombre, coords in cuerpos_cartesianos.items():
         # Asegurarse de que coords sea un array
         x, y, z = coords
+    
+        # Determinar el color según el nombre del cuerpo celeste
+        if nombre in nombres_cometas:  # Si el nombre está en la lista de nombres de cometas
+            color = color_cometa
+        else:
+            color = color_planeta  # Si no, es un planeta
+
+        # Añadir el cuerpo celeste    
         fig.add_trace(go.Scatter3d(x=[x], y=[y], z=[z],
                                      mode='markers',
                                      marker=dict(size=5),
@@ -107,7 +171,7 @@ def plot_sistema(planetas_cartesianas, orbitales):
         fig.add_trace(go.Scatter3d(x=orbit_x, y=orbit_y, z=orbit_z,
                                      mode='lines',
                                      name=f'Órbita de {nombre}',
-                                     line=dict(width=2)))
+                                     line=dict(width=2, dash='dot', color=color)))  # Usar el mismo color
 
     # Configurar el layout para tener fondo negro y líneas blancas
     fig.update_layout(scene=dict(
@@ -140,7 +204,7 @@ def index():
 
     # Cargar los parámetros orbitales desde el archivo JSON
     parametros_orbitales = cargar_parametros_desde_json('parametros_orbitales.json')
-    planetas = crear_planetas_desde_json(parametros_orbitales)
+    cuerpos = crear_planetas_desde_json(parametros_orbitales)
 
     # Obtener cuerpos adicionales del formulario
     if request.method == 'POST':
@@ -178,7 +242,7 @@ def index():
         long_node_rate = float(request.form.get('long_node_rate', 0.0))
         
         # Añadir el nuevo planeta al diccionario
-        planetas[nombre] = Planeta(
+        cuerpos[nombre] = CuerpoCeleste(
             nombre=nombre,
             a=a,
             a_rate=a_rate,
@@ -194,18 +258,27 @@ def index():
             long_node_rate=long_node_rate
         )
         
-    planetas_cartesianas = {}
+     # Cargar cometas desde CSV
+    cometas, nombres_cometas = cargar_cometas_desde_csv('comets.csv')
+
+    # Unir cuerpos celestes y cometas
+    cuerpos.update(cometas)   
+    
+    cuerpos_cartesianos = {}
     orbitales = {}
-    for nombre, planeta in planetas.items():
-        a, e, I, L, long_peri, long_node = calcular_elementos(planeta, fecha)
+
+    for nombre, cuerpo in cuerpos.items():
+        a, e, I, L, long_peri, long_node = calcular_elementos(cuerpo, fecha)
         coords = kepler_to_cartesian(a, e, I, L, long_peri, long_node, nu=0)  # Usa nu=0 como posición inicial
-        planetas_cartesianas[nombre] = coords
+        cuerpos_cartesianos[nombre] = coords
 
         # Calcular la órbita completa para el planeta
         orbit_x, orbit_y, orbit_z = generar_orbita_completa(a, e, I, long_peri, long_node)
         orbitales[nombre] = (orbit_x, orbit_y, orbit_z)
 
-    figura_html = plot_sistema(planetas_cartesianas, orbitales)
+    # Generar la figura
+    figura_html = plot_sistema(cuerpos_cartesianos, orbitales, nombres_cometas)
+
     return render_template('index.html', figura=figura_html)
 
 if __name__ == '__main__':
