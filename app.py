@@ -9,8 +9,8 @@ from flask import Flask, render_template, request, jsonify
 app = Flask(__name__)
 
 class CuerpoCeleste:
-    def __init__(self, nombre, a, e, I, L, long_peri, long_node, 
-                 a_rate=0, e_rate=0, I_rate=0, L_rate=0, long_peri_rate=0, long_node_rate=0):
+    def __init__(self, nombre, a, e, I, L, long_peri, long_node,
+                 a_rate=0, e_rate=0, I_rate=0, L_rate=0, long_peri_rate=0, long_node_rate=0, diametro=0):
         self.nombre = nombre
         self.a = a
         self.e = e
@@ -24,6 +24,7 @@ class CuerpoCeleste:
         self.L_rate = L_rate
         self.long_peri_rate = long_peri_rate
         self.long_node_rate = long_node_rate
+        self.diametro = diametro
 
 # Función para cargar parámetros desde el archivo JSON
 def cargar_parametros_desde_json(archivo):
@@ -47,7 +48,8 @@ def crear_planetas_desde_json(parametros):
             long_peri=datos['long_peri'],
             long_peri_rate=datos['long_peri_rate'],
             long_node=datos['long_node'],
-            long_node_rate=datos['long_node_rate']
+            long_node_rate=datos['long_node_rate'],
+            diametro=['diametro']
         )
     return planetas
 
@@ -59,11 +61,7 @@ def cargar_cometas_desde_csv(ruta_csv):
         for fila in lector:
             nombre = fila['full_name']
             e = float(fila['e'])  # Excentricidad
-            q = float(fila['q'])  # Perihelio
-
-            # Calcular el semieje mayor a partir de q
-            a = q / (1 - e)
-
+            a = float(fila['a'])  # semi eje mayor
             I = float(fila['i'])  # Inclinación
             long_peri = float(fila['w'])  # Longitud del periapsis
             long_node = float(fila['om'])  # Longitud del nodo ascendente
@@ -182,7 +180,7 @@ def plot_sistema(cuerpos_cartesianos, orbitales, nombres_cometas, axis_range):
     # Añadir el Sol como esfera
     sol_x, sol_y, sol_z = crear_esfera(0, 0, 0, radius=1 * escala_radio)  # Tamaño ajustado del Sol
     fig.add_trace(go.Surface(x=sol_x, y=sol_y, z=sol_z, colorscale=[[0, 'yellow'], [1, 'yellow']], 
-                             name='Sol', showscale=False, 
+                             name='Sun', showscale=False, 
                              lighting=dict(ambient=0.8, specular=0.3, roughness=0.9)))
 
     # Añadir planetas con efectos de iluminación
@@ -192,7 +190,7 @@ def plot_sistema(cuerpos_cartesianos, orbitales, nombres_cometas, axis_range):
 
         # Determinar el color según el nombre del cuerpo celeste
         color_planeta = colores_planetas.get(nombre, 'green')  # Usar color real del planeta o verde por defecto
-        radius = diametros.get(nombre, 1) * escala_radio  # Escalar el tamaño según el diámetro del planeta
+        radius = diametros.get(nombre, 0.05) * escala_radio  # Escalar el tamaño según el diámetro del planeta 0.05 default
 
         # Añadir el planeta como esfera con sombras y luces
         planeta_x, planeta_y, planeta_z = crear_esfera(x, y, z, radius=radius)
