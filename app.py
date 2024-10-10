@@ -16,7 +16,7 @@ def index():
     fecha = datetime.now()  #Fecha actual
 
     # Cargar los parámetros orbitales desde el archivo JSON
-    parametros_orbitales = cargar_parametros_desde_json('parametros_orbitales.json')
+    parametros_orbitales = cargar_parametros_desde_json('data/parametros_orbitales.json')
     cuerpos = crear_planetas_desde_json(parametros_orbitales)
 
     # Obtener cuerpos adicionales del formulario
@@ -72,7 +72,7 @@ def index():
         )
         
      # Cargar cometas desde CSV
-    cometas, nombres_cometas = cargar_cometas_desde_csv('comets.csv')
+    cometas, nombres_cometas = cargar_cometas_desde_csv('data/comets.csv')
 
     # Unir cuerpos celestes y cometas
     cuerpos.update(cometas)   
