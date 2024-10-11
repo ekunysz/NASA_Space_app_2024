@@ -109,6 +109,7 @@
           // Aquí se actualiza el div que contiene el gráfico con el nuevo gráfico recibido
           document.getElementById('grafico').innerHTML = data.figura;
           console.log('Nuevo gráfico recibido. Actualizando la visualización...');
+          window.location.reload();
         })
         .catch(error => console.error('Error al cambiar la escala:', error));
     }
