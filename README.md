@@ -1,5 +1,9 @@
 # Guia de uso
 
+## Pagina principal del proyecto en el Hackaton:
+https://www.spaceappschallenge.org/nasa-space-apps-2024/find-a-team/vanhalley/
+https://nasaspaceapp2024.uc.r.appspot.com/
+
 ## Descargar proyecto con git
 Crear carpeta vacia en donde descargar el proyecto
 Luego ejecutar:
